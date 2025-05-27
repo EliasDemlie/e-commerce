@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button2'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,7 +14,6 @@ import {
   Package,
   Filter,
   RefreshCw,
-  UserCog,
   MapPin,
 } from 'lucide-react'
 import type { Carrier } from '@/type/Carrier'
@@ -78,60 +77,58 @@ export default function EnhancedCarriersTab() {
   })
   const { toast } = useToast()
 
-  const fetchCarriers = async (page = 1) => {
-    setIsLoading(true)
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: pagination.limit.toString(),
-      })
+  const fetchCarriers = useCallback(
+    async (page = 1) => {
+      setIsLoading(true)
+      try {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: pagination.limit.toString(),
+        })
 
-      if (searchQuery) {
-        params.append('search', searchQuery)
-      }
-      if (filterZone !== 'all') {
-        params.append('zone', filterZone)
-      }
-      if (sortBy) {
-        params.append('sortBy', sortBy)
-      }
-
-      const response = await fetch(`/api/carrier?${params.toString()}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch carriers')
-      }
-      const data = await response.json()
-      setCarriers(data.carriers || [])
-      setPagination(
-        data.pagination || {
-          total: data.carriers?.length || 0,
-          page: 1,
-          limit: 20,
-          pages: 1,
+        if (searchQuery) {
+          params.append('search', searchQuery)
         }
-      )
-    } catch (error) {
-      if (error instanceof Error) {
+        if (filterZone !== 'all') {
+          params.append('zone', filterZone)
+        }
+        if (sortBy) {
+          params.append('sortBy', sortBy)
+        }
+
+        const response = await fetch(`/api/carrier?${params.toString()}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch carriers')
+        }
+        const data = await response.json()
+        setCarriers(data.carriers || [])
+        setPagination(
+          data.pagination || {
+            total: data.carriers?.length || 0,
+            page: 1,
+            limit: 20,
+            pages: 1,
+          }
+        )
+      } catch (error) {
+        console.error('Error fetching carriers:', error)
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to load carriers'
         toast({
           variant: 'destructive',
           title: 'Error',
-          description: error.message,
+          description: errorMessage,
         })
+      } finally {
+        setIsLoading(false)
       }
-      console.error('Error fetching carriers:', error)
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load carriers',
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
+    },
+    [pagination.limit, searchQuery, filterZone, sortBy]
+  )
 
   useEffect(() => {
     fetchCarriers(1)
-  }, [searchQuery, filterZone, sortBy])
+  }, [searchQuery, filterZone, sortBy, fetchCarriers])
 
   const handlePageChange = (page: number) => {
     setPagination((prev) => ({ ...prev, page }))
@@ -179,18 +176,15 @@ export default function EnhancedCarriersTab() {
         description: `Carrier is now ${!currentStatus ? 'active' : 'inactive'}`,
       })
     } catch (error) {
-      if (error instanceof Error) {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: error.message,
-        })
-      }
       console.error('Error updating carrier status:', error)
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to update carrier status'
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to update carrier status',
+        description: errorMessage,
       })
     }
   }
@@ -292,7 +286,6 @@ export default function EnhancedCarriersTab() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center">
-       
         <div className="flex space-x-2">
           <Button
             variant="outline"
@@ -482,7 +475,7 @@ interface CarrierTableProps {
   carriers: Carrier[]
   onStatusToggle: (carrierId: string, currentStatus: boolean) => void
   isLoading: boolean
-  router: any
+  router: ReturnType<typeof useRouter>
 }
 
 function CarrierTable({

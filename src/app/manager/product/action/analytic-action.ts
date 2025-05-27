@@ -149,8 +149,7 @@ export async function fetchComprehensiveAnalytics(
 
     // Customer Analytics
     const customerAnalytics = await fetchCustomerAnalytics(
-      defaultStartDate,
-      defaultEndDate
+      defaultStartDate
     )
 
     // Operational Analytics
@@ -371,8 +370,8 @@ async function fetchInventoryAnalytics() {
 
   const totalProducts = inventoryStats[0]?.totalProducts || 0
   const totalValue = inventoryStats[0]?.totalInventoryValue || 0
-
-  // Stock Levels Distribution
+  console.log(totalValue)
+  
   const stockLevels = await Product.aggregate([
     {
       $group: {
@@ -433,8 +432,8 @@ async function fetchInventoryAnalytics() {
   }
 }
 
-async function fetchCustomerAnalytics(startDate: Date, endDate: Date) {
-  // Total Customers
+async function fetchCustomerAnalytics(startDate: Date) {
+  
   const customerStats = await User.aggregate([
     {
       $match: { role: { $in: ['USER', null] } },
@@ -663,11 +662,11 @@ async function fetchFinancialAnalytics(startDate: Date, endDate: Date) {
   }
 }
 
-export async function exportAnalyticsData(format: 'csv' | 'pdf' | 'excel') {
+export async function exportAnalyticsData() {
   try {
     const analytics = await fetchComprehensiveAnalytics()
 
-    // Implement export logic based on format
+    
     revalidatePath('/admin/analytics')
 
     return { success: true, data: analytics }

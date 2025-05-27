@@ -73,8 +73,8 @@ export default function AnalyticsDashboard() {
 
   const handleExport = async () => {
     try {
-      await exportAnalyticsData(exportFormat)
-      // Handle successful export (show notification, download file, etc.)
+      await exportAnalyticsData()
+      
     } catch (error) {
       console.error('Export failed:', error)
     }
@@ -317,7 +317,7 @@ export default function AnalyticsDashboard() {
                 <div className="space-y-4">
                   {analytics.salesAnalytics.monthlyRevenue
                     .slice(-6)
-                    .map((month, index) => (
+                    .map((month) => (
                       <div
                         key={month.month}
                         className="flex justify-between items-center"

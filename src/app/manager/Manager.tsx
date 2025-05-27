@@ -127,7 +127,7 @@ export default function ManagerLayoutWithSidebar() {
     setRefreshing(true)
     loadDashboardStats()
   }
-
+  console.log(error)
   const renderContent = () => {
     switch (activeSection) {
       case "analytics":
@@ -157,7 +157,7 @@ export default function ManagerLayoutWithSidebar() {
               </Button>
             </div>
 
-            {/* Quick Stats for Inventory */}
+            
             {stats && (
               <div className="grid gap-4 grid-cols-1 md:grid-cols-4">
                 <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">

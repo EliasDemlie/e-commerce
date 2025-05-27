@@ -1,6 +1,21 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-const notifications: any[] = []
+interface Notification {
+  id: number
+  type: string
+  title: string
+  message: string
+  userId: string
+  read: boolean
+  createdAt: string
+  updatedAt?: string
+  metadata: Record<string, unknown>
+  actionUrl?: string
+  actionText?: string
+  image?: string
+}
+
+const notifications: Notification[] = []
 
 export async function PATCH(
   request: NextRequest,
@@ -32,7 +47,7 @@ export async function PATCH(
       success: true,
       notification: notifications[notificationIndex],
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to update notification' },
       { status: 500 }
@@ -60,7 +75,7 @@ export async function DELETE(
     notifications.splice(notificationIndex, 1)
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to delete notification' },
       { status: 500 }

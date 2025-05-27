@@ -3,11 +3,32 @@
 import type React from 'react'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { toast } from '@/components/ui/use-toast'
-import type {
-  Notification,
-  NotificationContextType,
-} from '@/type/notification'
+import type { Notification, NotificationContextType } from '@/type/notification'
 import { useSocket } from '@/hooks/useSocket'
+
+// Define the interface for incoming socket notification data
+interface SocketNotificationData {
+  type:
+    | 'new_order'
+    | 'order_status'
+    | 'new_user'
+    | 'low_stock'
+    | 'price_drop'
+    | 'back_in_stock'
+    | 'promotion'
+    | 'account'
+  title?: string
+  message?: string
+  orderId?: string
+  status?: string
+  userName?: string
+  productName?: string
+  productId?: string
+  discount?: number
+  imageUrl?: string
+  actionUrl?: string
+  actionText?: string
+}
 
 const NotificationContext = createContext<NotificationContextType | undefined>(
   undefined
@@ -23,24 +44,10 @@ export function NotificationProvider({
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
-  const addNotification = (notification: {
-    type:
-      | 'order'
-      | 'user'
-      | 'product'
-      | 'system'
-      | 'price'
-      | 'wishlist'
-      | 'promotion'
-      | 'account'
-    title: string
-    message: string
-    description?: string
-    actionUrl?: string
-    actionText?: string
-    image?: string
-  }) => {
-    const newNotification = {
+  const addNotification = (
+    notification: Omit<Notification, 'id' | 'read' | 'createdAt'>
+  ) => {
+    const newNotification: Notification = {
       ...notification,
       id: Math.random().toString(36).substr(2, 9),
       read: false,
@@ -51,7 +58,7 @@ export function NotificationProvider({
 
     toast({
       title: notification.title,
-      description: notification.message || notification.description,
+      description: notification.message ,
     })
   }
 
@@ -118,7 +125,7 @@ export function NotificationProvider({
         // socket.emit('join-user-room', userId)
       })
 
-      socket.on('notification', (data: any) => {
+      socket.on('notification', (data: SocketNotificationData) => {
         console.log('Received notification:', data)
 
         // Handle different notification types
@@ -128,8 +135,8 @@ export function NotificationProvider({
               type: 'order',
               title: 'New Order',
               message: `Order #${data.orderId} has been placed`,
-              actionUrl: `/orders/${data.orderId}`,
-              actionText: 'View Order',
+              // actionUrl: `/orders/${data.orderId}`,
+              // actionText: 'View Order',
             })
             break
           case 'order_status':
@@ -137,8 +144,8 @@ export function NotificationProvider({
               type: 'order',
               title: 'Order Status Update',
               message: `Order #${data.orderId} status changed to ${data.status}`,
-              actionUrl: `/orders/${data.orderId}`,
-              actionText: 'View Order',
+              // actionUrl: `/orders/${data.orderId}`,
+              // actionText: 'View Order',
             })
             break
           case 'new_user':
@@ -146,8 +153,8 @@ export function NotificationProvider({
               type: 'user',
               title: 'New User',
               message: `New user ${data.userName} has registered`,
-              actionUrl: '/users',
-              actionText: 'View Users',
+              // actionUrl: '',
+              // actionText: 'View Users',
             })
             break
           case 'low_stock':
@@ -155,47 +162,48 @@ export function NotificationProvider({
               type: 'product',
               title: 'Low Stock Alert',
               message: `Product ${data.productName} is running low on stock`,
-              actionUrl: `/products/${data.productId}`,
-              actionText: 'Manage Stock',
+              // actionUrl: ``
+              // /products/${data.productId}`,
+              // actionText: 'Manage Stock',
             })
             break
           case 'price_drop':
             addNotification({
-              type: 'price',
+              type: 'order',
               title: 'Price Drop Alert',
               message: `${data.productName} is now ${data.discount}% off!`,
-              actionUrl: `/products/${data.productId}`,
-              actionText: 'View Product',
-              image: data.imageUrl,
+              // actionUrl: `/products/${data.productId}`,
+              // actionText: 'View Product',
+              // image: data.imageUrl,
             })
             break
           case 'back_in_stock':
             addNotification({
-              type: 'wishlist',
+              type: 'order',
               title: 'Back in Stock',
               message: `${data.productName} in your wishlist is back in stock!`,
-              actionUrl: `/products/${data.productId}`,
-              actionText: 'Add to Cart',
-              image: data.imageUrl,
+              // actionUrl: `/products/${data.productId}`,
+              // actionText: 'Add to Cart',
+              // image: data.imageUrl,
             })
             break
           case 'promotion':
             addNotification({
-              type: 'promotion',
+              type: 'order',
               title: data.title || 'Special Promotion',
               message: data.message || 'Check out our latest promotion!',
-              actionUrl: data.actionUrl || '/promotions',
-              actionText: data.actionText || 'View Promotion',
-              image: data.imageUrl,
+              // actionUrl: data.actionUrl || '/promotions',
+              // actionText: data.actionText || 'View Promotion',
+              // image: data.imageUrl,
             })
             break
           case 'account':
             addNotification({
-              type: 'account',
+              type: 'order',
               title: data.title || 'Account Update',
               message: data.message || 'Your account has been updated',
-              actionUrl: data.actionUrl || '/account',
-              actionText: data.actionText || 'View Account',
+              // actionUrl: data.actionUrl || '/account',
+              // actionText: data.actionText || 'View Account',
             })
             break
           default:
@@ -203,8 +211,8 @@ export function NotificationProvider({
               type: 'system',
               title: data.title || 'System Notification',
               message: data.message || 'Unknown notification',
-              actionUrl: data.actionUrl,
-              actionText: data.actionText,
+              // actionUrl: data.actionUrl,
+              // actionText: data.actionText,
             })
         }
       })

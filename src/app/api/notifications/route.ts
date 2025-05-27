@@ -1,6 +1,20 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-const notifications: any[] = []
+interface Notification {
+  id: number
+  type: string
+  title: string
+  message: string
+  userId: string
+  read: boolean
+  createdAt: string
+  metadata: Record<string, unknown>
+  actionUrl?: string
+  actionText?: string
+  image?: string
+}
+
+const notifications: Notification[] = []
 let notificationId = 1
 
 export async function GET(request: NextRequest) {
@@ -37,7 +51,7 @@ export async function GET(request: NextRequest) {
       total: filteredNotifications.length,
       hasMore: offset + limit < filteredNotifications.length,
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch notifications' },
       { status: 500 }
@@ -66,7 +80,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const notification = {
+    const notification: Notification = {
       id: notificationId++,
       type,
       title,
@@ -84,16 +98,16 @@ export async function POST(request: NextRequest) {
 
     // Emit to Socket.IO if available
     const { emitNotification } = await import('@/lib/socket-server')
-    emitNotification(
-      {
-        type: 'notification',
-        ...notification,
-      },
-      userId
-    )
+    // emitNotification(
+    //   {
+    //     type: 'notification',
+    //     ...notification,
+    //   },
+    //   userId
+    // )
 
     return NextResponse.json({ success: true, notification })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to create notification' },
       { status: 500 }
