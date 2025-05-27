@@ -480,6 +480,7 @@ interface CarrierTableProps {
 
 function CarrierTable({
   carriers,
+  
   onStatusToggle,
   isLoading,
   router,
