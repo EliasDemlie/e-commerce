@@ -7,6 +7,7 @@ import { Metadata } from 'next'
 import { Toaster } from 'react-hot-toast'
 import { NotificationProvider } from '@/provider/NotificationProvider'
 
+
 export const metadata: Metadata = {
   title: 'Gulit Gebeya',
   description: 'AI-powered e-commerce web app',
